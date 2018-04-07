@@ -1,0 +1,42 @@
+分区： 
+create table part
+      (id int not null auto_increment,
+      name varchar(20) not null,
+      sex varchar(20) not null,
+      primary key(id)
+      )engine=innodb default charset=utf8
+      partition by range(id)(
+      partition p0 values less than (10),
+      partition p1 values less than (20)
+      );
+增加分区
+alter table T_part add partition(partition p2 values less than (MAXVALUE));  ---新增分区
+删除分区
+alter table T_part DROP partition p2; ----删除分区
+分区种类
+mysql支持5种分区方式：RANGE分区、LIST分区、HASH分区、LINEAR HASH分区和KEY分区
+1）RANGE分区：
+
+　　　　RANGE分区的表是通过如下一种方式进行分区的，每个分区包含那些分区表达式的值位于一个给定的连续区间内的行。这些区间要连续且不能相互重叠，使用VALUES LESS THAN操作符来进行定义。
+
+　　　　上面的例子就是RANGE分区.
+2）LIST分区：
+
+　　　　MySQL中的LIST分区在很多方面类似于RANGE分区。和按照RANGE分区一样，每个分区必须明确定义。它们的主要区别在于，LIST分区中每个分区的定义和选择是基于某列的值从属于一个值列表集中的一个值，而RANGE分区是从属于一个连续区间值的集合。LIST分区通过使用“PARTITION BY LIST(expr)”来实现，其中“expr” 是某列值或一个基于某个列值、并返回一个整数值的表达式，然后通过“VALUES IN (value_list)”的方式来定义每个分区，其中“value_list”是一个通过逗号分隔的整数列表。
+ create table list
+      (id int not null auto_increment,
+      name varchar(20) not null,
+      sex varchar(20) not null,
+      primary key(id)
+      )engine=innodb default charset=utf8
+      partition by list(id)(
+      partition p0 values in (1,2,3),
+      partition p1 values in (4,5,6)
+      );
+　3)HASH分区：
+
+　　　　HASH分区主要用来确保数据在预先确定数目的分区中平均分布。在RANGE和LIST分区中，必须明确指定一个给定的列值或列值集合应该保存在哪个分区中；而在HASH分区中，MySQL 自动完成这些工作，你所要做的只是基于将要被哈希的列值指定一个列值或表达式，以及指定被分区的表将要被分割成的分区数量。要使用HASH分区来分割一个表，要在CREATE TABLE 语句上添加一个“PARTITION BY HASH (expr)”子句，其中“expr”是一个返回一个整数的表达式。它可以仅仅是字段类型为MySQL 整型的一列的名字。此外，你很可能需要在后面再添加一个“PARTITIONS num”子句，其中num 是一个非负的整数，它表示表将要被分割成分区的数量。
+
+create table hash (id int not null auto_increment, name varchar(20) not null, sex varchar(20) not null, primary key(id) )engine=innodb default charset=utf8 partition by hash(id)  partitions 4 ;
+create table wangtest ( id int not null auto_increment, name varchar(20) default null, primary key(id) ) engine=innodb default charset=utf8 partition by key(id) partitions 3;
+create table parties  (id int not null auto_increment, name varchar(20) not null, sex varchar(20) not null, primary key(id) )engine=innodb charset=utf8 partition by range(id) subpartitionion by hash(id) subpartitions 2 ( partition p0 values less than (10), partition p1 values less than (20));
